@@ -101,7 +101,7 @@ tar_gz_name="cdnfly-agent-v5.1.16-Ubuntu-16.04.tar.gz"
 
 cd /opt
 
-download "https://github.com/LoveesYe/cdnflydadao/blob/43b7dae8cd457e2b28acd8cc86c557ea53ba47e0/agent/$tar_gz_name" "https://github.com/LoveesYe/cdnflydadao/blob/43b7dae8cd457e2b28acd8cc86c557ea53ba47e0/agent/$tar_gz_name" "$tar_gz_name"
+download "https://github.com/LoveesYe/cdnflydadao/raw/main/agent/$tar_gz_name" "https://github.com/LoveesYe/cdnflydadao/raw/main/agent/$tar_gz_name" "$tar_gz_name"
 
 rm -rf $dir_name
 tar xf $tar_gz_name
