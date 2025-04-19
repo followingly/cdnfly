@@ -4,14 +4,7 @@
 set -o errexit
 
 # 检查系统是否为 CentOS
-check_sys() {
-    if [[ -f /etc/redhat-release ]]; then
-        return 0
-    else
-        echo "该脚本仅支持 CentOS 系统"
-        exit 1
-    fi
-}
+
 
 # 安装依赖
 install_depend() {
