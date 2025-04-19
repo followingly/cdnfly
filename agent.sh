@@ -3,12 +3,24 @@
 # 遇到错误时退出
 set -o errexit
 
-# 检查系统是否为 CentOS
-
+# 检查系统是否为Ubuntu
+check_sys() {
+    if [[ ! -f /etc/os-release ]]; then
+        echo "无法检测操作系统类型"
+        exit 1
+    fi
+    
+    source /etc/os-release
+    if [[ "$ID" != "ubuntu" ]]; then
+        echo "此脚本仅适用于Ubuntu系统"
+        exit 1
+    fi
+}
 
 # 安装依赖
 install_depend() {
-    yum install -y wget python
+    apt-get update
+    apt-get install -y wget python3 curl ntpdate
 }
 
 # 下载文件
@@ -38,10 +50,10 @@ download() {
 sync_time() {
     echo "开始同步时间并添加同步命令到 cronjob..."
 
-    yum -y install ntpdate wget
+    apt-get install -y ntpdate
     /usr/sbin/ntpdate -u pool.ntp.org || true
-    ! grep -q "/usr/sbin/ntpdate -u pool.ntp.org" /var/spool/cron/root > /dev/null 2>&1 && echo '*/10 * * * * /usr/sbin/ntpdate -u pool.ntp.org > /dev/null 2>&1 || (date_str=$(curl update.cdnfly.cn/common/datetime) && timedatectl set-ntp false && echo $date_str && timedatectl set-time "$date_str" )' >> /var/spool/cron/root
-    service crond restart
+    ! grep -q "/usr/sbin/ntpdate -u pool.ntp.org" /var/spool/cron/crontabs/root > /dev/null 2>&1 && echo '*/10 * * * * /usr/sbin/ntpdate -u pool.ntp.org > /dev/null 2>&1 || (date_str=$(curl update.cdnfly.cn/common/datetime) && timedatectl set-ntp false && echo $date_str && timedatectl set-time "$date_str" )' >> /var/spool/cron/crontabs/root
+    service cron restart
 
     # 设置时区
     rm -f /etc/localtime
@@ -89,7 +101,7 @@ tar_gz_name="cdnfly-agent-v5.1.16-Ubuntu-16.04.tar.gz"
 
 cd /opt
 
-download "https://raw.githubusercontent.com/Steady-WJ/cdnfly-kaixin/main/cdnfly/$tar_gz_name" "https://raw.githubusercontent.com/Steady-WJ/cdnfly-kaixin/main/cdnfly/$tar_gz_name" "$tar_gz_name"
+download "https://github.com/LoveesYe/cdnflydadao/blob/43b7dae8cd457e2b28acd8cc86c557ea53ba47e0/agent/$tar_gz_name" "https://github.com/LoveesYe/cdnflydadao/blob/43b7dae8cd457e2b28acd8cc86c557ea53ba47e0/agent/$tar_gz_name" "$tar_gz_name"
 
 rm -rf $dir_name
 tar xf $tar_gz_name
