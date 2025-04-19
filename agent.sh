@@ -90,9 +90,9 @@ check_sys
 install_depend
 [[ -z "$IGNORE_NTP" ]] && sync_time
 
-# 默认下载 cdnfly-agent-v5.1.16-centos-7.tar.gz
+# 默认下载 cdnfly-agent-v5.1.16-Ubuntu-16.04.tar.gz
 dir_name="cdnfly-agent-v5.1.16"
-tar_gz_name="cdnfly-agent-v5.1.16-centos-7.tar.gz"
+tar_gz_name="cdnfly-agent-v5.1.16-Ubuntu-16.04.tar.gz"
 
 cd /opt
 
