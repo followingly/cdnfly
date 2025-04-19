@@ -3,6 +3,11 @@
 # 遇到错误时退出
 set -o errexit
 
+#!/bin/bash -x
+
+# 遇到错误时退出
+set -o errexit
+
 # 检查系统是否为Ubuntu
 check_sys() {
     if [[ ! -f /etc/os-release ]]; then
@@ -17,6 +22,45 @@ check_sys() {
     fi
 }
 
+# 安装依赖并设置Python别名
+install_depend() {
+    apt-get update
+    apt-get install -y wget python3 curl ntpdate file
+    
+    # 创建python到python3的符号链接（如果不存在）
+    if ! command -v python &> /dev/null; then
+        update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+    fi
+}
+
+# 验证文件是否为有效的tar.gz文件
+validate_tar_gz() {
+    local file=$1
+    if ! file "$file" | grep -q "gzip compressed data"; then
+        echo "错误：$file 不是有效的gzip压缩文件"
+        return 1
+    fi
+    return 0
+}
+
+# [其余函数保持不变...]
+
+# 在安装依赖后添加Python版本检查
+check_python() {
+    if ! command -v python &> /dev/null; then
+        echo "错误：Python未正确安装"
+        exit 1
+    fi
+    echo "Python版本：$(python --version)"
+}
+
+# 在主流程中添加Python检查
+check_sys
+install_depend
+check_python  # 新增的Python检查
+[[ -z "$IGNORE_NTP" ]] && sync_time
+
+# [其余部分保持不变...]
 # 安装依赖
 install_depend() {
     apt-get update
