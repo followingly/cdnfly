@@ -3,68 +3,19 @@
 # 遇到错误时退出
 set -o errexit
 
-#!/bin/bash -x
-
-# 遇到错误时退出
-set -o errexit
-
-# 检查系统是否为Ubuntu
+# 检查系统是否为 CentOS
 check_sys() {
-    if [[ ! -f /etc/os-release ]]; then
-        echo "无法检测操作系统类型"
-        exit 1
-    fi
-    
-    source /etc/os-release
-    if [[ "$ID" != "ubuntu" ]]; then
-        echo "此脚本仅适用于Ubuntu系统"
+    if [[ -f /etc/redhat-release ]]; then
+        return 0
+    else
+        echo "该脚本仅支持 CentOS 系统"
         exit 1
     fi
 }
 
-# 安装依赖并设置Python别名
-install_depend() {
-    apt-get update
-    apt-get install -y wget python3 curl ntpdate file
-    
-    # 创建python到python3的符号链接（如果不存在）
-    if ! command -v python &> /dev/null; then
-        update-alternatives --install /usr/bin/python python /usr/bin/python3 1
-    fi
-}
-
-# 验证文件是否为有效的tar.gz文件
-validate_tar_gz() {
-    local file=$1
-    if ! file "$file" | grep -q "gzip compressed data"; then
-        echo "错误：$file 不是有效的gzip压缩文件"
-        return 1
-    fi
-    return 0
-}
-
-# [其余函数保持不变...]
-
-# 在安装依赖后添加Python版本检查
-check_python() {
-    if ! command -v python &> /dev/null; then
-        echo "错误：Python未正确安装"
-        exit 1
-    fi
-    echo "Python版本：$(python --version)"
-}
-
-# 在主流程中添加Python检查
-check_sys
-install_depend
-check_python  # 新增的Python检查
-[[ -z "$IGNORE_NTP" ]] && sync_time
-
-# [其余部分保持不变...]
 # 安装依赖
 install_depend() {
-    apt-get update
-    apt-get install -y wget python3 curl ntpdate
+    yum install -y wget python
 }
 
 # 下载文件
@@ -94,10 +45,10 @@ download() {
 sync_time() {
     echo "开始同步时间并添加同步命令到 cronjob..."
 
-    apt-get install -y ntpdate
+    yum -y install ntpdate wget
     /usr/sbin/ntpdate -u pool.ntp.org || true
-    ! grep -q "/usr/sbin/ntpdate -u pool.ntp.org" /var/spool/cron/crontabs/root > /dev/null 2>&1 && echo '*/10 * * * * /usr/sbin/ntpdate -u pool.ntp.org > /dev/null 2>&1 || (date_str=$(curl update.cdnfly.cn/common/datetime) && timedatectl set-ntp false && echo $date_str && timedatectl set-time "$date_str" )' >> /var/spool/cron/crontabs/root
-    service cron restart
+    ! grep -q "/usr/sbin/ntpdate -u pool.ntp.org" /var/spool/cron/root > /dev/null 2>&1 && echo '*/10 * * * * /usr/sbin/ntpdate -u pool.ntp.org > /dev/null 2>&1 || (date_str=$(curl update.cdnfly.cn/common/datetime) && timedatectl set-ntp false && echo $date_str && timedatectl set-time "$date_str" )' >> /var/spool/cron/root
+    service crond restart
 
     # 设置时区
     rm -f /etc/localtime
@@ -139,13 +90,13 @@ check_sys
 install_depend
 [[ -z "$IGNORE_NTP" ]] && sync_time
 
-# 默认下载 cdnfly-agent-v5.1.16-Ubuntu-16.04.tar.gz
+# 默认下载 cdnfly-agent-v5.1.16-centos-7.tar.gz
 dir_name="cdnfly-agent-v5.1.16"
-tar_gz_name="cdnfly-agent-v5.1.16-Ubuntu-16.04.tar.gz"
+tar_gz_name="cdnfly-agent-v5.1.16-centos-7.tar.gz"
 
 cd /opt
 
-download "https://github.com/LoveesYe/cdnflydadao/raw/main/agent/$tar_gz_name" "https://github.com/LoveesYe/cdnflydadao/raw/main/agent/$tar_gz_name" "$tar_gz_name"
+download "https://raw.githubusercontent.com/Steady-WJ/cdnfly-kaixin/main/cdnfly/$tar_gz_name" "https://raw.githubusercontent.com/Steady-WJ/cdnfly-kaixin/main/cdnfly/$tar_gz_name" "$tar_gz_name"
 
 rm -rf $dir_name
 tar xf $tar_gz_name
